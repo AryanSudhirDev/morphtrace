@@ -1,8 +1,8 @@
 {
-  "name": "morphtrace",
+  "name": "contextcheck",
   "displayName": "ContextCheck",
   "description": "Review whether an AI summary preserves important instructions, constraints, approvals, and scope.",
-  "version": "0.1.2",
+  "version": "0.1.0",
   "publisher": "aryansudhir",
   "engines": {
     "vscode": "^1.102.0"

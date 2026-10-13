@@ -1,9 +1,5 @@
 # Changelog
 
-## 0.1.2
-
-- Replaces the active MorphTrace marketplace experience with ContextCheck.
-
 ## 0.1.0, local and unpublished
 
 - Initial local ContextCheck build.

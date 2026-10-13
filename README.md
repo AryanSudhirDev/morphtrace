@@ -81,7 +81,7 @@ Build a local VSIX without publishing it:
 
 ```bash
 npm run package:extension
-# Install the resulting contextcheck-0.1.2.vsix using Extensions: Install from VSIX.
+# Install the resulting contextcheck-0.1.0.vsix using Extensions: Install from VSIX.
 ```
 
 Commands:
