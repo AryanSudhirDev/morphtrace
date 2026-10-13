@@ -1,5 +1,5 @@
 {
-  "name": "morphtrace-cursor",
+  "name": "morphtrace",
   "displayName": "MorphTrace",
   "description": "Inspect deterministic morphology analyses and generation traces from workspace grammar files.",
   "version": "0.1.0",
