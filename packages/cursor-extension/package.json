@@ -1,14 +1,15 @@
 {
   "name": "morphtrace",
   "displayName": "MorphTrace",
-  "description": "Inspect deterministic morphology analyses and generation traces from workspace grammar files.",
-  "version": "0.1.0",
+  "description": "Analyze and generate modeled word forms with explicit morphemes, features, and deterministic rule traces.",
+  "version": "0.1.1",
   "publisher": "aryansudhir",
   "engines": {
     "vscode": "^1.102.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Data Science"
   ],
   "main": "./dist/extension.js",
   "activationEvents": [
@@ -43,11 +44,32 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AryanSudhirDev/morphtrace"
+    "url": "https://github.com/AryanSudhirDev/morphtrace.git"
   },
   "files": [
     "dist/**",
+    "media/**",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
-  ]
+  ],
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#151B3D",
+    "theme": "dark"
+  },
+  "keywords": [
+    "morphology",
+    "linguistics",
+    "computational linguistics",
+    "morphemes",
+    "word formation",
+    "grammar",
+    "cursor",
+    "vscode"
+  ],
+  "homepage": "https://github.com/AryanSudhirDev/morphtrace#readme",
+  "bugs": {
+    "url": "https://github.com/AryanSudhirDev/morphtrace/issues"
+  }
 }
