@@ -1,11 +1,10 @@
 # Changelog
 
-## 0.1.1
+## 0.1.2
 
-- Added a flat MorphTrace marketplace icon.
-- Added detailed Open VSX documentation, tags, links, and gallery metadata.
+- Replaces the active MorphTrace marketplace experience with ContextCheck.
 
-## 0.1.0
+## 0.1.0, local and unpublished
 
-- Initial release with deterministic concatenative analysis and generation.
-- Added synthetic demo grammar, Cursor/VS Code commands, tests, and validation template.
+- Initial local ContextCheck build.
+- Provides local summary review, evidence panel, export, and explicit saved-data clearing.

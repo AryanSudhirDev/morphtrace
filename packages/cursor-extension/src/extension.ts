@@ -1,79 +1,14 @@
 import * as vscode from "vscode";
-import { analyze, generate, validateGrammar, type Analysis, type Features, type GeneratedForm, type Grammar } from "@morphtrace/core";
+import { readFile, writeFile } from "node:fs/promises";
+import { checkSummary, type CheckResult, type Finding, type ReviewLabel } from "@contextcheck/core";
 
-const GRAMMAR_CANDIDATES = ["morphtrace.grammar.json", ".morphtrace/grammar.json"];
-
-function escapeHtml(value: unknown): string {
-  return String(value).replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character] ?? character);
-}
-
-async function loadGrammar(): Promise<Grammar> {
-  const folder = vscode.workspace.workspaceFolders?.[0];
-  if (!folder) throw new Error("Open a workspace folder and add morphtrace.grammar.json or .morphtrace/grammar.json.");
-  const configured = vscode.workspace.getConfiguration("morphtrace", folder.uri).get<string>("grammarPath", "").trim();
-  const candidates = configured ? [configured] : GRAMMAR_CANDIDATES;
-  for (const candidate of candidates) {
-    const uri = vscode.Uri.joinPath(folder.uri, ...candidate.split("/"));
-    try {
-      const contents = new TextDecoder("utf-8", { fatal: true }).decode(await vscode.workspace.fs.readFile(uri));
-      const parsed: unknown = JSON.parse(contents);
-      validateGrammar(parsed);
-      return parsed;
-    } catch (error) {
-      if ((error as { code?: string }).code === "FileNotFound") continue;
-      throw new Error(`Could not load ${candidate}: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  }
-  throw new Error("No valid MorphTrace grammar is present. Add morphtrace.grammar.json or .morphtrace/grammar.json. Start from the synthetic demo, then complete VALIDATION.md before making real-language claims.");
-}
-
-function resultHtml(title: string, results: GeneratedForm[]): string {
-  const body = results.length === 0 ? "<p>No analysis or generated form is licensed by this grammar.</p>" : results.map((result, index) => {
-    const features = Object.entries(result.features).map(([key, value]) => `${escapeHtml(key)}=${escapeHtml(value)}`).join(", ") || "none";
-    const morphemes = result.morphemes.map((morpheme) => `${escapeHtml(morpheme.form)}${morpheme.gloss ? ` (${escapeHtml(morpheme.gloss)})` : ""}`).join(" + ");
-    const trace = result.trace.map((step) => `<li><code>${escapeHtml(step.input)} → ${escapeHtml(step.output)}</code><br>${escapeHtml(step.id)}: ${escapeHtml(step.explanation)}</li>`).join("");
-    return `<section><h2>Result ${index + 1}: ${escapeHtml(result.surfaceForm)}</h2><p><strong>Lemma:</strong> ${escapeHtml(result.lemma)}<br><strong>Features:</strong> ${features}<br><strong>Morphemes:</strong> ${morphemes}</p><h3>Rule trace</h3><ol>${trace}</ol></section>`;
-  }).join("<hr>");
-  return `<!doctype html><html><head><meta charset="utf-8"><style>body{font:14px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.45;padding:0 16px}code{white-space:pre-wrap}section{margin:18px 0}h1{font-size:1.35rem}</style></head><body><h1>${escapeHtml(title)}</h1>${body}</body></html>`;
-}
-
-function showResults(title: string, results: GeneratedForm[]): void {
-  const panel = vscode.window.createWebviewPanel("morphtrace.results", "MorphTrace Results", vscode.ViewColumn.Beside, { enableScripts: false, retainContextWhenHidden: true });
-  panel.webview.html = resultHtml(title, results);
-}
-
-async function analyzeSelectedWord(): Promise<void> {
-  const editor = vscode.window.activeTextEditor;
-  const selected = editor?.document.getText(editor.selection).trim();
-  if (!selected) { vscode.window.showInformationMessage("MorphTrace: select a word or surface form first."); return; }
-  try {
-    const grammar = await loadGrammar();
-    showResults(`Analyses for ${selected}`, analyze(selected, grammar) as Analysis[]);
-  } catch (error) {
-    vscode.window.showErrorMessage(`MorphTrace: ${error instanceof Error ? error.message : String(error)}`);
-  }
-}
-
-async function generateWordForm(): Promise<void> {
-  const lemma = await vscode.window.showInputBox({ prompt: "Lemma", placeHolder: "Enter a lemma from the workspace grammar" });
-  if (!lemma?.trim()) return;
-  const featureText = await vscode.window.showInputBox({ prompt: "Feature bundle as JSON", value: "{}", placeHolder: '{"tense":"past","number":"plural"}' });
-  if (featureText === undefined) return;
-  try {
-    const features: unknown = JSON.parse(featureText);
-    if (!features || typeof features !== "object" || Array.isArray(features)) throw new Error("Feature bundle must be a JSON object.");
-    const grammar = await loadGrammar();
-    showResults(`Generated forms for ${lemma}`, generate(lemma, features as Features, grammar));
-  } catch (error) {
-    vscode.window.showErrorMessage(`MorphTrace: ${error instanceof Error ? error.message : String(error)}`);
-  }
-}
-
-export function activate(context: vscode.ExtensionContext): void {
-  context.subscriptions.push(
-    vscode.commands.registerCommand("morphtrace.analyzeSelectedWord", analyzeSelectedWord),
-    vscode.commands.registerCommand("morphtrace.generateWordForm", generateWordForm)
-  );
-}
-
-export function deactivate(): void {}
+type SourceState={input:unknown;label:string};let sourceState:SourceState|undefined;let resultState:CheckResult|undefined;const labels=new Map<string,ReviewLabel>();
+const entities:Record<string,string>={"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"};const esc=(x:unknown)=>String(x).replace(/[&<>'"]/g,c=>entities[c]??c);
+function highlights(text:string,spans:{start:number;end:number}[]){let out="",at=0;for(const s of [...spans].sort((a,b)=>a.start-b.start)){if(s.start<at)continue;out+=esc(text.slice(at,s.start))+`<mark>${esc(text.slice(s.start,s.end))}</mark>`;at=s.end;}return out+esc(text.slice(at));}
+function panelHtml(result:CheckResult){const nonce=String(Date.now());const byId=new Map(result.conversation.messages.map(m=>[m.id,m]));const allSource=new Map<string,{start:number;end:number}[]>();for(const f of result.findings)for(const s of f.sourceSpans){const x=allSource.get(s.messageId)??[];x.push(s);allSource.set(s.messageId,x);}const source=result.conversation.messages.map(m=>`<article><h3>${esc(m.role)} · ${esc(m.id)}</h3><pre>${highlights(m.text,allSource.get(m.id)??[])}</pre></article>`).join("");const summarySpans=result.findings.flatMap(f=>f.summarySpans).filter(s=>s.messageId==="summary");const findings=result.findings.map((f,i)=>{const current=labels.get(f.id);return `<article class="finding"><h3>${esc(f.category.replaceAll("-"," "))}</h3><p>${esc(f.explanation)}</p><p><strong>Evidence:</strong> ${f.sourceSpans.map(s=>`<q>${esc(s.text)}</q>`).join(" ")||"No matching source instruction."}</p><p><strong>Summary:</strong> ${f.summarySpans.map(s=>`<q>${esc(s.text)}</q>`).join(" ")||"No matching summary passage."}</p><label>Reviewer label <select data-index="${i}" aria-label="Reviewer label for finding ${i+1}"><option value="">Unreviewed</option>${(["confirmed-issue","acceptable-paraphrase","false-alarm","needs-clarification"] as ReviewLabel[]).map(v=>`<option value="${v}" ${current===v?"selected":""}>${esc(v.replaceAll("-"," "))}</option>`).join("")}</select></label></article>`;}).join("");return `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'"><style>body{font:14px system-ui,sans-serif;line-height:1.45;margin:0;padding:16px;color:var(--vscode-foreground)}main{max-width:1100px;margin:auto}section{border:1px solid var(--vscode-panel-border);border-radius:8px;padding:12px;margin:12px 0}pre{white-space:pre-wrap;font:13px ui-monospace,monospace}mark{background:var(--vscode-editor-findMatchHighlightBackground);color:inherit}.finding{border-left:4px solid var(--vscode-focusBorder);padding:10px;margin:10px 0;background:var(--vscode-editorWidget-background)}select{margin-left:8px}q{font-style:italic}</style></head><body><main><h1>ContextCheck review</h1><p>Local deterministic review aid. Findings are not a safety guarantee.</p><section><h2>Candidate summary</h2><pre>${highlights(result.candidateSummary,summarySpans)}</pre></section><section><h2>Findings</h2>${findings||"<p>No supported findings. This does not prove the summary is correct.</p>"}</section><section><h2>Original conversation</h2>${source}</section><section><h2>Coverage and limits</h2><ul>${result.limitations.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></section></main><script nonce="${nonce}">document.querySelectorAll('select[data-index]').forEach(s=>s.addEventListener('change',()=>acquireVsCodeApi().postMessage({type:'label',index:Number(s.dataset.index),label:s.value})));</script></body></html>`;}
+function showReview(context:vscode.ExtensionContext){if(!resultState){vscode.window.showInformationMessage("ContextCheck: load a source and run a check first.");return;}const panel=vscode.window.createWebviewPanel("contextcheck.review","ContextCheck Review",vscode.ViewColumn.Beside,{enableScripts:true,retainContextWhenHidden:true});const refresh=()=>panel.webview.html=panelHtml(resultState!);refresh();panel.webview.onDidReceiveMessage(async(message:unknown)=>{const x=message as {type?:string;index?:number;label?:ReviewLabel};if(x.type==="label"&&typeof x.index==="number"&&Number.isInteger(x.index)&&x.label&&resultState?.findings[x.index]){labels.set(resultState.findings[x.index].id,x.label);refresh();await context.workspaceState.update("contextcheck.labels",Object.fromEntries(labels));}});}
+async function readSourceFile(uri:vscode.Uri):Promise<SourceState>{const raw=await readFile(uri.fsPath,"utf8");try{return {input:JSON.parse(raw),label:uri.fsPath};}catch{return {input:raw,label:uri.fsPath};}}
+async function loadSource(context:vscode.ExtensionContext){const pick=await vscode.window.showQuickPick([{label:"Choose conversation file",value:"file"},{label:"Paste plain text",value:"paste"}],{placeHolder:"Load a source conversation explicitly"});if(!pick)return;let state:SourceState|undefined;if(pick.value==="file"){const uris=await vscode.window.showOpenDialog({canSelectMany:false,filters:{"Conversation":["json","txt","md"]}});if(uris?.[0])state=await readSourceFile(uris[0]);}else{const text=await vscode.window.showInputBox({prompt:"Paste source conversation text (plain text has no role information)"});if(text!==undefined)state={input:text,label:"pasted plain text"};}if(!state)return;try{checkSummary(state.input,"ContextCheck validation summary.");sourceState=state;await context.workspaceState.update("contextcheck.source",state);vscode.window.showInformationMessage(`ContextCheck loaded ${state.label}.`);}catch(error){vscode.window.showErrorMessage(`ContextCheck: ${error instanceof Error?error.message:String(error)}`);}}
+async function candidateSummary():Promise<string|undefined>{const pick=await vscode.window.showQuickPick([{label:"Choose summary file",value:"file"},{label:"Paste summary text",value:"paste"}],{placeHolder:"Select the candidate summary"});if(!pick)return;if(pick.value==="file"){const uris=await vscode.window.showOpenDialog({canSelectMany:false,filters:{"Summary":["txt","md","json"]}});if(uris?.[0])return readFile(uris[0].fsPath,"utf8");return;}return vscode.window.showInputBox({prompt:"Paste candidate summary"});}
+export function activate(context:vscode.ExtensionContext):void{sourceState=context.workspaceState.get<SourceState>("contextcheck.source");for(const [id,label] of Object.entries(context.workspaceState.get<Record<string,ReviewLabel>>("contextcheck.labels",{})))labels.set(id,label);context.subscriptions.push(vscode.commands.registerCommand("contextcheck.loadSourceConversation",()=>loadSource(context)),vscode.commands.registerCommand("contextcheck.checkSummary",async()=>{if(!sourceState){await loadSource(context);if(!sourceState)return;}const summary=await candidateSummary();if(!summary)return;try{resultState=checkSummary(sourceState.input,summary);labels.clear();showReview(context);}catch(error){vscode.window.showErrorMessage(`ContextCheck: ${error instanceof Error?error.message:String(error)}`);}}),vscode.commands.registerCommand("contextcheck.reviewFindings",()=>showReview(context)),vscode.commands.registerCommand("contextcheck.exportReviewReport",async()=>{if(!resultState){vscode.window.showInformationMessage("ContextCheck: nothing to export yet.");return;}const target=await vscode.window.showSaveDialog({defaultUri:vscode.Uri.file("contextcheck-review.json"),filters:{JSON:["json"]}});if(target)await writeFile(target.fsPath,JSON.stringify({...resultState,reviewLabels:Object.fromEntries(labels)},null,2),"utf8");}),vscode.commands.registerCommand("contextcheck.clearSavedReviewData",async()=>{sourceState=undefined;resultState=undefined;labels.clear();await context.workspaceState.update("contextcheck.source",undefined);await context.workspaceState.update("contextcheck.labels",undefined);vscode.window.showInformationMessage("ContextCheck saved source and review labels cleared.");}));}
+export function deactivate():void{}

@@ -1,45 +1,49 @@
 {
   "name": "morphtrace",
-  "displayName": "MorphTrace",
-  "description": "Analyze and generate modeled word forms with explicit morphemes, features, and deterministic rule traces.",
-  "version": "0.1.1",
+  "displayName": "ContextCheck",
+  "description": "Review whether an AI summary preserves important instructions, constraints, approvals, and scope.",
+  "version": "0.1.2",
   "publisher": "aryansudhir",
   "engines": {
     "vscode": "^1.102.0"
   },
   "categories": [
     "Other",
-    "Data Science"
+    "Testing"
   ],
   "main": "./dist/extension.js",
   "activationEvents": [
-    "onCommand:morphtrace.analyzeSelectedWord",
-    "onCommand:morphtrace.generateWordForm"
+    "onCommand:contextcheck.checkSummary",
+    "onCommand:contextcheck.loadSourceConversation",
+    "onCommand:contextcheck.reviewFindings",
+    "onCommand:contextcheck.exportReviewReport"
   ],
   "contributes": {
     "commands": [
       {
-        "command": "morphtrace.analyzeSelectedWord",
-        "title": "MorphTrace: Analyze Selected Word"
+        "command": "contextcheck.checkSummary",
+        "title": "ContextCheck: Check Summary Against Conversation"
       },
       {
-        "command": "morphtrace.generateWordForm",
-        "title": "MorphTrace: Generate Word Form"
+        "command": "contextcheck.loadSourceConversation",
+        "title": "ContextCheck: Load Source Conversation"
+      },
+      {
+        "command": "contextcheck.reviewFindings",
+        "title": "ContextCheck: Review Findings"
+      },
+      {
+        "command": "contextcheck.exportReviewReport",
+        "title": "ContextCheck: Export Review Report"
+      },
+      {
+        "command": "contextcheck.clearSavedReviewData",
+        "title": "ContextCheck: Clear Saved Review Data"
       }
-    ],
-    "configuration": {
-      "title": "MorphTrace",
-      "properties": {
-        "morphtrace.grammarPath": {
-          "type": "string",
-          "default": "",
-          "description": "Optional workspace-relative path to a MorphTrace grammar JSON file."
-        }
-      }
-    }
+    ]
   },
   "dependencies": {
-    "@morphtrace/core": "file:../core"
+    "@contextcheck/core": "file:../core"
   },
   "license": "MIT",
   "repository": {
@@ -59,12 +63,11 @@
     "theme": "dark"
   },
   "keywords": [
-    "morphology",
-    "linguistics",
-    "computational linguistics",
-    "morphemes",
-    "word formation",
-    "grammar",
+    "ai safety",
+    "summary review",
+    "instruction preservation",
+    "handoffs",
+    "context",
     "cursor",
     "vscode"
   ],

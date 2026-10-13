@@ -1,7 +1,14 @@
 {
   "files": [],
   "references": [
-    { "path": "./packages/core" },
-    { "path": "./packages/cursor-extension" }
+    {
+      "path": "./packages/core"
+    },
+    {
+      "path": "./packages/cursor-extension"
+    },
+    {
+      "path": "./packages/mcp"
+    }
   ]
 }

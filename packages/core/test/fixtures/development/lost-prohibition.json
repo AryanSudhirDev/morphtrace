@@ -1,0 +1,1 @@
+{"conversation":{"messages":[{"id":"u1","role":"user","text":"Prepare the database update, but do not run it."}]},"summary":"Update the database.","expect":"potentially-omitted-constraint"}

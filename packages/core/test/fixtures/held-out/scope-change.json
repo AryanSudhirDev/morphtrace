@@ -1,0 +1,1 @@
+{"conversation":{"messages":[{"id":"u1","role":"user","text":"Deploy only in staging."}]},"summary":"Deploy only in production.","expect":"changed-condition-or-scope"}

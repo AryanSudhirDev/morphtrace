@@ -1,0 +1,1 @@
+{"messages":[{"id":"u1","role":"user","text":"Prepare the database update, but do not run it."},{"id":"u2","role":"assistant","text":"I can prepare a migration plan."}]}

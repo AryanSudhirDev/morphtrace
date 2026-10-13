@@ -1,11 +1,16 @@
 # Changelog
 
-## 0.1.1
+## 0.1.2
 
-- Added a flat MorphTrace marketplace icon.
-- Added detailed Open VSX documentation, tags, links, and gallery metadata.
+- Replaces the active MorphTrace marketplace experience with ContextCheck.
 
-## 0.1.0
+## 0.1.0, local and unpublished
 
-- Initial release with deterministic concatenative analysis and generation.
-- Added synthetic demo grammar, Cursor/VS Code commands, tests, and validation template.
+- Replaced MorphTrace with ContextCheck.
+- Added local deterministic checking of a documented subset of summary instruction changes.
+- Added Cursor/VS Code review commands, a local MCP `check_summary` tool, CLI, examples, and review labels.
+- Added explicit privacy boundaries, Cursor hook limitations, development/held-out fixtures, and an evaluation-scope document.
+
+## Legacy MorphTrace
+
+The prior morphology engine, tests, grammar fixture, extension source, icon, and validation template are retained under `legacy/`. They are not part of ContextCheck builds or the active extension.
