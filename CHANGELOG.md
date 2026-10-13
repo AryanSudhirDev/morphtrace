@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.1.0, local and unpublished
+## 0.1.1
+
+- Added professional Open VSX onboarding, feature descriptions, examples, privacy boundaries, and MCP instructions.
+
+## 0.1.0
 
 - Replaced MorphTrace with ContextCheck.
 - Added local deterministic checking of a documented subset of summary instruction changes.

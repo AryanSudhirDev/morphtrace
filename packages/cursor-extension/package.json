@@ -1,15 +1,15 @@
 {
   "name": "contextcheck",
   "displayName": "ContextCheck",
-  "description": "Review whether an AI summary preserves important instructions, constraints, approvals, and scope.",
-  "version": "0.1.0",
+  "description": "Review whether AI summaries preserve instructions, approvals, prohibitions, and scope.",
+  "version": "0.1.1",
   "publisher": "aryansudhir",
   "engines": {
     "vscode": "^1.102.0"
   },
   "categories": [
-    "Other",
-    "Testing"
+    "Testing",
+    "Other"
   ],
   "main": "./dist/extension.js",
   "activationEvents": [
@@ -67,7 +67,8 @@
     "summary review",
     "instruction preservation",
     "handoffs",
-    "context",
+    "context management",
+    "approval workflows",
     "cursor",
     "vscode"
   ],
