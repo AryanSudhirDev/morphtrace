@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "synthetic-demo-v1",
+  "label": "Synthetic Demo Grammar (not a real language)",
+  "status": "synthetic-demo",
+  "morphology": { "type": "concatenative" },
+  "lexicon": [
+    { "lemma": "tal", "gloss": "observe" },
+    { "lemma": "lum", "gloss": "signal" },
+    { "lemma": "noka", "gloss": "sort" },
+    { "lemma": "émi", "gloss": "notice" }
+  ],
+  "affixes": [
+    { "id": "plural-na", "kind": "prefix", "form": "na", "features": { "number": "plural" }, "order": 10, "gloss": "PL" },
+    { "id": "present-i", "kind": "suffix", "form": "i", "features": { "tense": "present" }, "order": 10, "gloss": "PRS" },
+    { "id": "past-mu", "kind": "suffix", "form": "mu", "features": { "tense": "past" }, "order": 10, "gloss": "PST" }
+  ],
+  "rules": [
+    { "id": "l-before-mu-voices", "operation": "replace", "find": "lmu", "replace": "dmu", "whenFeatures": { "tense": "past" }, "note": "In this synthetic demo only, l becomes d before the past suffix mu." }
+  ]
+}

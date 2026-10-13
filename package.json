@@ -1,0 +1,20 @@
+{
+  "name": "morphtrace",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "tsc -b && esbuild packages/cursor-extension/src/extension.ts --bundle --platform=node --format=cjs --external:vscode --outfile=packages/cursor-extension/dist/extension.js",
+    "test": "npm run build && node --test packages/core/dist/test/*.test.js",
+    "clean": "tsc -b --clean && rm -rf packages/*/dist",
+    "package:extension": "npm run build && (cd packages/cursor-extension && npm exec --package @vscode/vsce vsce package -- --no-dependencies -o ../../morphtrace-0.1.0.vsix)"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/vscode": "^1.102.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^5.8.3"
+  }
+}

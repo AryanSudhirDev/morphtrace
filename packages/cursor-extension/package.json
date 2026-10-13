@@ -1,0 +1,53 @@
+{
+  "name": "morphtrace-cursor",
+  "displayName": "MorphTrace",
+  "description": "Inspect deterministic morphology analyses and generation traces from workspace grammar files.",
+  "version": "0.1.0",
+  "publisher": "aryansudhir",
+  "engines": {
+    "vscode": "^1.102.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onCommand:morphtrace.analyzeSelectedWord",
+    "onCommand:morphtrace.generateWordForm"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "morphtrace.analyzeSelectedWord",
+        "title": "MorphTrace: Analyze Selected Word"
+      },
+      {
+        "command": "morphtrace.generateWordForm",
+        "title": "MorphTrace: Generate Word Form"
+      }
+    ],
+    "configuration": {
+      "title": "MorphTrace",
+      "properties": {
+        "morphtrace.grammarPath": {
+          "type": "string",
+          "default": "",
+          "description": "Optional workspace-relative path to a MorphTrace grammar JSON file."
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "@morphtrace/core": "file:../core"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AryanSudhirDev/morphtrace"
+  },
+  "files": [
+    "dist/**",
+    "README.md",
+    "LICENSE"
+  ]
+}
